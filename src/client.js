@@ -103,7 +103,6 @@ export class WikiJsClient {
             locale
             createdAt
             updatedAt
-            tags
           }
         }
       }
@@ -134,7 +133,6 @@ export class WikiJsClient {
             locale
             createdAt
             updatedAt
-            tags
           }
         }
       }

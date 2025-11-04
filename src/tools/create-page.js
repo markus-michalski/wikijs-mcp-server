@@ -42,6 +42,11 @@ export const createPageTool = {
         description: 'Whether the page should be published immediately',
         default: true,
       },
+      isPrivate: {
+        type: 'boolean',
+        description: 'Whether the page should be private (restricted access)',
+        default: false,
+      },
       tags: {
         type: 'array',
         items: { type: 'string' },
@@ -63,6 +68,7 @@ export async function handleCreatePage(client, args) {
       locale: args.locale || 'en',
       editor: args.editor || 'markdown',
       isPublished: args.isPublished !== false,
+      isPrivate: args.isPrivate || false,
       tags: args.tags || [],
     });
 

@@ -191,6 +191,7 @@ export class WikiJsClient {
     description,
     editor = 'markdown',
     isPublished = true,
+    isPrivate = false,
     locale = 'en',
     path,
     tags = [],
@@ -202,6 +203,7 @@ export class WikiJsClient {
         $description: String!
         $editor: String!
         $isPublished: Boolean!
+        $isPrivate: Boolean!
         $locale: String!
         $path: String!
         $tags: [String]!
@@ -213,6 +215,7 @@ export class WikiJsClient {
             description: $description
             editor: $editor
             isPublished: $isPublished
+            isPrivate: $isPrivate
             locale: $locale
             path: $path
             tags: $tags
@@ -239,6 +242,7 @@ export class WikiJsClient {
       description,
       editor,
       isPublished,
+      isPrivate,
       locale,
       path,
       tags,

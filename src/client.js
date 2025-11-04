@@ -65,9 +65,7 @@ export class WikiJsClient {
             contentType
             createdAt
             updatedAt
-            tags {
-              tag
-            }
+            tags
           }
         }
       }
@@ -105,9 +103,7 @@ export class WikiJsClient {
             locale
             createdAt
             updatedAt
-            tags {
-              tag
-            }
+            tags
           }
         }
       }
@@ -138,9 +134,7 @@ export class WikiJsClient {
             locale
             createdAt
             updatedAt
-            tags {
-              tag
-            }
+            tags
           }
         }
       }

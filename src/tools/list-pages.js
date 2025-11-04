@@ -34,7 +34,7 @@ export async function handleListPages(client, args) {
       description: p.description,
       locale: p.locale,
       isPublished: p.isPublished,
-      tags: p.tags?.map(t => t.tag) || [],
+      tags: p.tags || [],
       updatedAt: p.updatedAt,
     }));
 

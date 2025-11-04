@@ -22,17 +22,20 @@ This server enables Claude Code and other MCP clients to create, read, update, a
 
 ## Installation
 
-### 1. Clone or Download
+### 1. Copy Files to MCP Server Directory
 
 ```bash
-cd /home/markus/projekte/claude
-# Repository already exists at wikijs-mcp-server/
-cd wikijs-mcp-server
+# Create directory
+mkdir -p ~/.claude/mcp-servers/wikijs
+
+# Copy all files from repository
+cp -r /path/to/wikijs-mcp-server/* ~/.claude/mcp-servers/wikijs/
 ```
 
 ### 2. Install Dependencies
 
 ```bash
+cd ~/.claude/mcp-servers/wikijs
 npm install
 ```
 
@@ -41,15 +44,18 @@ npm install
 Copy `.env.example` to `.env` and configure:
 
 ```bash
+cd ~/.claude/mcp-servers/wikijs
 cp .env.example .env
 ```
 
-Edit `.env`:
+Edit `~/.claude/mcp-servers/wikijs/.env`:
 
 ```env
-WIKIJS_API_URL=https://faq.markus-michalski.net/graphql
+WIKIJS_API_URL=https://your-wiki-instance.com/graphql
 WIKIJS_API_TOKEN=your-api-token-here
 ```
+
+**Important:** The server automatically loads the `.env` file from `~/.claude/mcp-servers/wikijs/.env` when started by Claude Code. You do NOT need to set environment variables in `.claude.json`.
 
 ### 4. Create Wiki.js API Token
 
@@ -62,39 +68,45 @@ WIKIJS_API_TOKEN=your-api-token-here
    - `write:pages` - Create and update pages
    - `manage:pages` - Delete and move pages
 6. Click **Generate**
-7. Copy the token and paste it into `.env`
+7. Copy the token and paste it into `~/.claude/mcp-servers/wikijs/.env`
 
-### 5. Add to Claude Code MCP Settings
+### 5. Add to Claude Code Configuration
 
-Edit your Claude Code MCP settings file:
-
-**macOS/Linux:**
-```bash
-~/.claude/mcp_settings.json
-```
-
-**Windows:**
-```
-%APPDATA%\Claude\mcp_settings.json
-```
-
-Add the server configuration:
+Edit `~/.claude.json` and add the wikijs server to the **global** `mcpServers` section (at the bottom of the file):
 
 ```json
 {
   "mcpServers": {
     "wikijs": {
+      "type": "stdio",
       "command": "node",
-      "args": ["/home/markus/projekte/claude/wikijs-mcp-server/index.js"],
-      "disabled": false
+      "args": [
+        "/home/YOUR_USERNAME/.claude/mcp-servers/wikijs/index.js"
+      ],
+      "env": {}
     }
   }
 }
 ```
 
+**Note:** Replace `/home/YOUR_USERNAME/` with your actual home directory path. Use `~/.claude/mcp-servers/wikijs/index.js` if your shell supports tilde expansion, or get the full path with `echo ~/.claude/mcp-servers/wikijs/index.js`.
+
 ### 6. Restart Claude Code
 
-Restart Claude Code to load the new MCP server.
+```bash
+# Exit Claude Code
+/exit
+
+# Start Claude Code again
+claude
+```
+
+Verify the server is connected:
+```bash
+/mcp
+```
+
+You should see "wikijs" listed with status "✓ connected".
 
 ## Available Tools
 
@@ -326,9 +338,10 @@ await mcp.wikijs.move_page({
 **Problem:** `.env` file not found or incomplete
 
 **Solution:**
-1. Ensure `.env` exists in project root
+1. Ensure `.env` exists at `~/.claude/mcp-servers/wikijs/.env`
 2. Verify `WIKIJS_API_URL` and `WIKIJS_API_TOKEN` are set
 3. Check `.env.example` for correct format
+4. **Note:** The server automatically loads `.env` from `~/.claude/mcp-servers/wikijs/.env` - you do NOT need to set environment variables in `~/.claude.json`
 
 ### "GraphQL Error: Forbidden"
 
@@ -348,19 +361,21 @@ await mcp.wikijs.move_page({
 **Problem:** Wrong API URL
 
 **Solution:**
-1. Verify `WIKIJS_API_URL` in `.env`
+1. Verify `WIKIJS_API_URL` in `~/.claude/mcp-servers/wikijs/.env`
 2. Should end with `/graphql`
-3. Example: `https://faq.markus-michalski.net/graphql`
+3. Example: `https://your-wiki.com/graphql`
 
-### Server not appearing in Claude Code
+### Server not appearing in Claude Code / Status "failed"
 
-**Problem:** MCP configuration not loaded
+**Problem:** MCP configuration not loaded or server startup failed
 
 **Solution:**
-1. Check `mcp_settings.json` syntax
-2. Verify file path to `index.js` is correct
-3. Restart Claude Code completely
-4. Check Claude Code logs for errors
+1. Check `~/.claude.json` syntax (must be valid JSON)
+2. Verify file path to `index.js` is correct: `~/.claude/mcp-servers/wikijs/index.js`
+3. Ensure `.env` file exists at `~/.claude/mcp-servers/wikijs/.env`
+4. Run `/mcp` in Claude Code to see server status
+5. Restart Claude Code completely (`/exit` then restart)
+6. Test manually: `cd ~/.claude/mcp-servers/wikijs && node index.js` (should output "Wiki.js MCP Server running on stdio")
 
 ## Development
 

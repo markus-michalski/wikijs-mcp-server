@@ -65,14 +65,15 @@ export async function handleUpdatePage(client, args) {
       throw new Error('Either "id" or "path" must be provided');
     }
 
-    const result = await client.updatePage({
-      id: pageId,
-      content: args.content,
-      title: args.title,
-      description: args.description,
-      isPublished: args.isPublished,
-      tags: args.tags,
-    });
+    // Only pass defined values
+    const updateParams = { id: pageId };
+    if (args.content !== undefined) updateParams.content = args.content;
+    if (args.title !== undefined) updateParams.title = args.title;
+    if (args.description !== undefined) updateParams.description = args.description;
+    if (args.isPublished !== undefined) updateParams.isPublished = args.isPublished;
+    if (args.tags !== undefined) updateParams.tags = args.tags;
+
+    const result = await client.updatePage(updateParams);
 
     return {
       content: [

@@ -304,7 +304,9 @@ export class WikiJsClient {
         if (key === 'content' || key === 'title' || key === 'description') return `$${key}: String`;
         if (key === 'isPublished') return '$isPublished: Boolean';
         if (key === 'tags') return '$tags: [String]';
+        return null;
       })
+      .filter(Boolean)
       .join(', ');
 
     const query = `

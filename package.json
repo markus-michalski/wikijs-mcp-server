@@ -1,6 +1,6 @@
 {
   "name": "@markus-michalski/wikijs-mcp-server",
-  "version": "1.0.0",
+  "version": "0.0.9",
   "description": "MCP Server for Wiki.js GraphQL API integration",
   "type": "module",
   "main": "index.js",

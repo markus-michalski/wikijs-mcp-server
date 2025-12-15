@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
-    name: Build and Test
+  code-quality:
+    name: Code Quality Checks
     runs-on: ubuntu-latest
 
     strategy:

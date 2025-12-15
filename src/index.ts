@@ -116,6 +116,39 @@ server.tool(
   async (args) => handleMovePage(wikiClient, args)
 );
 
+// Graceful shutdown handling
+let isShuttingDown = false;
+
+async function shutdown(signal: string): Promise<void> {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
+  console.error(`Received ${signal}, shutting down gracefully...`);
+  try {
+    await server.close();
+    console.error('Wiki.js MCP Server shutdown complete');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+}
+
+// Setup signal handlers
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('uncaughtException', (error: Error & { code?: string }) => {
+  // Don't log EPIPE errors (broken pipe when client disconnects)
+  if (error.code !== 'EPIPE') {
+    console.error('Uncaught exception:', error);
+  }
+  shutdown('uncaughtException');
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason);
+  shutdown('unhandledRejection');
+});
+
 // Start server
 async function main(): Promise<void> {
   const transport = new StdioServerTransport();

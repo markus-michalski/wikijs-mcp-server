@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  code-quality:
-    name: Code Quality Checks
+  build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
 
     strategy:
@@ -28,19 +28,16 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: JavaScript Syntax Check
-        run: |
-          echo "Checking JavaScript syntax..."
-          find . -name "*.js" ! -path "./node_modules/*" -print0 | while IFS= read -r -d '' file; do
-            echo "Checking: $file"
-            node -c "$file"
-          done
+      - name: TypeScript Build
+        run: npm run build
 
-      - name: Check index.js exists and is valid
+      - name: TypeScript Type Check
+        run: npm run typecheck
+
+      - name: Verify dist output
         run: |
-          test -f index.js || { echo "Error: index.js not found"; exit 1; }
-          node -c index.js
-          echo "✓ index.js is valid"
+          test -f dist/index.js || { echo "Error: dist/index.js not found after build"; exit 1; }
+          echo "✓ Build output valid"
 
   package-validation:
     name: Package Validation
@@ -54,7 +51,8 @@ jobs:
         run: |
           echo "Verifying MCP server structure..."
           test -f package.json || { echo "Error: package.json not found"; exit 1; }
-          test -f index.js || { echo "Error: index.js not found"; exit 1; }
+          test -f src/index.ts || { echo "Error: src/index.ts not found"; exit 1; }
+          test -f tsconfig.json || { echo "Error: tsconfig.json not found"; exit 1; }
           test -f README.md || { echo "Error: README.md not found"; exit 1; }
           test -f CHANGELOG.md || { echo "Error: CHANGELOG.md not found"; exit 1; }
           test -f LICENSE || { echo "Error: LICENSE not found"; exit 1; }
@@ -67,6 +65,8 @@ jobs:
           grep -q '"name"' package.json || { echo "Error: Package name missing"; exit 1; }
           grep -q '"version"' package.json || { echo "Error: Package version missing"; exit 1; }
           grep -q '"@modelcontextprotocol/sdk"' package.json || { echo "Error: MCP SDK dependency missing"; exit 1; }
+          grep -q '"zod"' package.json || { echo "Error: Zod dependency missing"; exit 1; }
+          grep -q '"build"' package.json || { echo "Error: Build script missing"; exit 1; }
           echo "✓ Package metadata valid"
 
       - name: Verify CHANGELOG format

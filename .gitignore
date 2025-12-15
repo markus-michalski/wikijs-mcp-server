@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Build output
+dist/
+
 # Environment
 .env
 .env.local
@@ -27,3 +30,6 @@ Thumbs.db
 # Misc
 *.bak
 *.tmp
+
+# Claude
+CLAUDE.md

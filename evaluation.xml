@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Wiki.js MCP Server Evaluation
+
+  These questions test the MCP server's ability to handle realistic Wiki.js operations.
+  All questions are READ-ONLY, NON-DESTRUCTIVE, and have STABLE answers.
+
+  Created: 2025-12-15
+-->
+<evaluation>
+  <qa_pair>
+    <question>Search for pages related to "API" in the English locale. How many total search hits are returned?</question>
+    <answer>6</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Find the page with path "osticket/subticket-manager" in English. What is its page ID?</question>
+    <answer>17</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>List all pages and find the one that has the tag "parent-child" in the English locale. What is the title of this page?</question>
+    <answer>Subticket Manager</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Get the page at path "mcp/wikijs" in German (locale "de"). What is the first word of its description?</question>
+    <answer>Model</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>How many osTicket plugin documentation pages are there in English? Count only pages where the path starts with "osticket/" (excluding the main "osticket" page itself).</question>
+    <answer>7</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Find the page with ID 20. Is this page published? Answer "yes" or "no".</question>
+    <answer>no</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>List all pages in German (locale "de"). How many pages have the tag "deutsch"?</question>
+    <answer>3</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>What is the content type of the osTicket main page (path "osticket", locale "en")? Answer with the exact contentType value.</question>
+    <answer>html</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Search for "Markdown" in the wiki. Among the results, find the page that is in German locale and has "Support" in its title. What is its path?</question>
+    <answer>osticket/markdown-support</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>List all pages and count how many different unique tags exist across all pages in the English locale. Provide the total count of unique tags.</question>
+    <answer>31</answer>
+  </qa_pair>
+</evaluation>

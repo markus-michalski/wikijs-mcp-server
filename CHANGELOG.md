@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.1] - 2025-12-15
+
+### Fixed
+- Add graceful shutdown handlers for MCP server
+
+
+---
+
 ## [3.0.0] - 2025-12-15
 
 ### Changed
@@ -71,4 +79,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/markus-michalski/wikijs-mcp-server/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/markus-michalski/wikijs-mcp-server/compare/v3.0.1...HEAD

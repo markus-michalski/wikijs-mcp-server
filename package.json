@@ -13,6 +13,8 @@
     "dev": "tsx watch src/index.ts",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -32,9 +34,10 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
+    "@types/node": "^22.19.3",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^4.0.16"
   },
   "engines": {
     "node": ">=18.0.0"

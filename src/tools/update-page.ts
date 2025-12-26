@@ -28,12 +28,14 @@ Args:
 Returns:
   Success confirmation with update result
 
-Note: If you don't provide tags, existing tags are preserved.
+Note: If you don't provide content or tags, existing values are automatically preserved.
+This allows metadata-only updates (e.g., changing isPublished) without having to provide the full page content.
 
 Examples:
   - Update content: id=42, content="# New Content..."
   - Unpublish: path="drafts/old-post", isPublished=false
-  - Update tags: id=42, tags=["updated", "v2"]`,
+  - Update tags: id=42, tags=["updated", "v2"]
+  - Publish only: id=42, isPublished=true (content auto-preserved)`,
   inputSchema: updatePageSchema,
   annotations: {
     readOnlyHint: false,
@@ -55,19 +57,34 @@ export async function handleUpdatePage(
       throw new Error('Either "id" or "path" must be provided');
     }
 
-    // Resolve page ID from path if needed
+    // Resolve page ID from path if needed, and optionally fetch current page data
     let pageId = validated.id;
+    let currentPage = null;
 
     if (!pageId && validated.path) {
-      const page = await client.getPageByPath(validated.path, validated.locale);
-      if (!page) {
+      currentPage = await client.getPageByPath(validated.path, validated.locale);
+      if (!currentPage) {
         throw new Error(`Page not found at path: ${validated.path}`);
       }
-      pageId = page.id;
+      pageId = currentPage.id;
     }
 
     if (!pageId) {
       throw new Error('Could not resolve page ID');
+    }
+
+    // If content not provided, fetch current content to preserve it
+    // Wiki.js API requires content in update mutation, even for metadata-only updates
+    let contentToUse = validated.content;
+    if (contentToUse === undefined) {
+      // Reuse already fetched page or fetch by ID
+      if (!currentPage) {
+        currentPage = await client.getPageById(pageId);
+        if (!currentPage) {
+          throw new Error(`Page not found with ID: ${pageId}`);
+        }
+      }
+      contentToUse = currentPage.content;
     }
 
     // If tags not provided, fetch current tags to preserve them
@@ -75,13 +92,13 @@ export async function handleUpdatePage(
     let tagsToUse = validated.tags;
     if (tagsToUse === undefined) {
       const pages = await client.getAllPages();
-      const currentPage = pages.find((p) => p.id === pageId);
-      tagsToUse = currentPage?.tags || [];
+      const foundPage = pages.find((p) => p.id === pageId);
+      tagsToUse = foundPage?.tags || [];
     }
 
     const result = await client.updatePage({
       id: pageId,
-      content: validated.content ?? null,
+      content: contentToUse ?? null,
       title: validated.title ?? null,
       description: validated.description ?? null,
       isPublished: validated.isPublished ?? null,

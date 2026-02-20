@@ -50,10 +50,6 @@ const WIKIJS_API_TOKEN = process.env.WIKIJS_API_TOKEN;
 if (!WIKIJS_API_URL || !WIKIJS_API_TOKEN) {
   console.error('Error: Missing required environment variables');
   console.error('Please ensure WIKIJS_API_URL and WIKIJS_API_TOKEN are set in .env file');
-  console.error('');
-  console.error('Expected locations:');
-  console.error(`  - ${envPath}`);
-  console.error('  - .env in current directory');
   process.exit(1);
 }
 
@@ -153,8 +149,9 @@ process.on('unhandledRejection', (reason) => {
 async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  const host = new URL(WIKIJS_API_URL!).hostname;
   console.error('Wiki.js MCP Server v2.0.0 running on stdio');
-  console.error(`Connected to: ${WIKIJS_API_URL}`);
+  console.error(`Connected to: ${host}`);
 }
 
 main().catch((error) => {

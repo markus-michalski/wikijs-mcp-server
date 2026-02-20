@@ -55,7 +55,10 @@ export class WikiJsClient {
       const result = (await response.json()) as GraphQLResponse<T>;
 
       if (result.errors) {
-        throw new Error(`GraphQL Error: ${JSON.stringify(result.errors)}`);
+        // Log full error for debugging, return only messages to client
+        console.error('GraphQL API errors:', JSON.stringify(result.errors));
+        const messages = result.errors.map((e) => e.message).join('; ');
+        throw new Error(`GraphQL request failed: ${messages}`);
       }
 
       if (!result.data) {
@@ -277,50 +280,28 @@ export class WikiJsClient {
 
   /**
    * Update an existing page
+   *
+   * Uses a static parameterized mutation with all optional fields.
+   * Wiki.js ignores null values for optional parameters.
    */
   async updatePage(params: UpdatePageParams): Promise<ApiResponseResult> {
-    // Build dynamic mutation based on provided fields
-    const fields: string[] = [];
-    const variables: Record<string, unknown> = { id: params.id };
-
-    if (params.content !== null && params.content !== undefined) {
-      fields.push('content: $content');
-      variables.content = params.content;
-    }
-    if (params.title !== null && params.title !== undefined) {
-      fields.push('title: $title');
-      variables.title = params.title;
-    }
-    if (params.description !== null && params.description !== undefined) {
-      fields.push('description: $description');
-      variables.description = params.description;
-    }
-    if (params.isPublished !== null && params.isPublished !== undefined) {
-      fields.push('isPublished: $isPublished');
-      variables.isPublished = params.isPublished;
-    }
-    if (params.tags !== null && params.tags !== undefined) {
-      fields.push('tags: $tags');
-      variables.tags = params.tags;
-    }
-
-    const variableDefinitions = Object.keys(variables)
-      .map((key) => {
-        if (key === 'id') return '$id: Int!';
-        if (key === 'content' || key === 'title' || key === 'description') return `$${key}: String`;
-        if (key === 'isPublished') return '$isPublished: Boolean';
-        if (key === 'tags') return '$tags: [String]';
-        return null;
-      })
-      .filter(Boolean)
-      .join(', ');
-
     const query = `
-      mutation(${variableDefinitions}) {
+      mutation(
+        $id: Int!
+        $content: String
+        $title: String
+        $description: String
+        $isPublished: Boolean
+        $tags: [String]
+      ) {
         pages {
           update(
             id: $id
-            ${fields.join('\n            ')}
+            content: $content
+            title: $title
+            description: $description
+            isPublished: $isPublished
+            tags: $tags
           ) {
             responseResult {
               succeeded
@@ -331,6 +312,15 @@ export class WikiJsClient {
         }
       }
     `;
+
+    const variables: Record<string, unknown> = {
+      id: params.id,
+      content: params.content ?? null,
+      title: params.title ?? null,
+      description: params.description ?? null,
+      isPublished: params.isPublished ?? null,
+      tags: params.tags ?? null,
+    };
 
     const data = await this.query<{
       pages: {

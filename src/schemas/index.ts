@@ -5,13 +5,12 @@
  */
 
 import { z } from 'zod';
-import { DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT } from '../constants.js';
+import { DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT, MAX_CONTENT_SIZE, MAX_TAG_LENGTH, MAX_TAGS_PER_PAGE } from '../constants.js';
 
 // Common schemas
 const localeSchema = z
   .string()
-  .min(2)
-  .max(5)
+  .regex(/^[a-z]{2}(-[A-Z]{2})?$/, 'Locale must be a valid language code (e.g., "en", "de", "en-US")')
   .default('en')
   .describe('Page locale (e.g., "en", "de")');
 
@@ -25,7 +24,29 @@ const pagePathSchema = z
   .string()
   .min(1)
   .max(500)
+  .regex(
+    /^[a-zA-Z0-9][a-zA-Z0-9\-_/]*[a-zA-Z0-9]$|^[a-zA-Z0-9]$/,
+    'Path must contain only alphanumeric characters, hyphens, underscores, and forward slashes'
+  )
+  .refine(
+    (path) => !path.includes('..') && !path.includes('//'),
+    'Path must not contain ".." or "//"'
+  )
   .describe('Page path without leading slash (e.g., "osticket/plugin-name" or "home")');
+
+const tagSchema = z
+  .string()
+  .min(1)
+  .max(MAX_TAG_LENGTH, `Tag must not exceed ${MAX_TAG_LENGTH} characters`);
+
+const tagsSchema = z
+  .array(tagSchema)
+  .max(MAX_TAGS_PER_PAGE, `Maximum ${MAX_TAGS_PER_PAGE} tags per page`);
+
+const contentSchema = z
+  .string()
+  .min(1)
+  .max(MAX_CONTENT_SIZE, `Content must not exceed ${MAX_CONTENT_SIZE} characters`);
 
 // Create Page Schema
 export const createPageSchema = z.object({
@@ -35,9 +56,7 @@ export const createPageSchema = z.object({
     .min(1)
     .max(200)
     .describe('Page title'),
-  content: z
-    .string()
-    .min(1)
+  content: contentSchema
     .describe('Page content (Markdown or HTML depending on editor)'),
   description: z
     .string()
@@ -57,24 +76,26 @@ export const createPageSchema = z.object({
     .boolean()
     .default(false)
     .describe('Whether the page should be private (restricted access)'),
-  tags: z
-    .array(z.string())
+  tags: tagsSchema
     .default([])
     .describe('Array of tags for the page (e.g., ["tutorial", "development"])'),
 });
 
 export type CreatePageInput = z.infer<typeof createPageSchema>;
 
+// Note: id/path mutex is enforced in handlers, not via .refine(),
+// because MCP SDK server.tool() requires .shape which is only on ZodObject.
+
 // Update Page Schema
 export const updatePageSchema = z.object({
   id: pageIdSchema.optional().describe('Page ID to update (optional if path is provided)'),
   path: pagePathSchema.optional().describe('Page path (optional if id is provided)'),
   locale: localeSchema,
-  content: z.string().optional().describe('New page content (optional)'),
+  content: contentSchema.optional().describe('New page content (optional)'),
   title: z.string().max(200).optional().describe('New page title (optional)'),
   description: z.string().max(500).optional().describe('New page description (optional)'),
   isPublished: z.boolean().optional().describe('Whether the page should be published (optional)'),
-  tags: z.array(z.string()).optional().describe('Array of tags for the page (optional)'),
+  tags: tagsSchema.optional().describe('Array of tags for the page (optional)'),
 });
 
 export type UpdatePageInput = z.infer<typeof updatePageSchema>;
@@ -90,7 +111,11 @@ export type GetPageInput = z.infer<typeof getPageSchema>;
 
 // List Pages Schema
 export const listPagesSchema = z.object({
-  locale: z.string().min(2).max(5).optional().describe('Filter by locale (optional, e.g., "en", "de")'),
+  locale: z
+    .string()
+    .regex(/^[a-z]{2}(-[A-Z]{2})?$/, 'Locale must be a valid language code')
+    .optional()
+    .describe('Filter by locale (optional, e.g., "en", "de")'),
   limit: z
     .number()
     .int()
@@ -115,7 +140,11 @@ export const searchPagesSchema = z.object({
     .min(2)
     .max(200)
     .describe('Search query string (minimum 2 characters)'),
-  locale: z.string().min(2).max(5).optional().describe('Filter results by locale (optional)'),
+  locale: z
+    .string()
+    .regex(/^[a-z]{2}(-[A-Z]{2})?$/, 'Locale must be a valid language code')
+    .optional()
+    .describe('Filter results by locale (optional)'),
 });
 
 export type SearchPagesInput = z.infer<typeof searchPagesSchema>;
@@ -134,10 +163,7 @@ export const movePageSchema = z.object({
   id: pageIdSchema.optional().describe('Page ID to move (optional if path is provided)'),
   path: pagePathSchema.optional().describe('Current page path (optional if id is provided)'),
   locale: localeSchema,
-  destinationPath: z
-    .string()
-    .min(1)
-    .max(500)
+  destinationPath: pagePathSchema
     .describe('New path for the page (e.g., "new-category/page-name")'),
   destinationLocale: localeSchema.describe('Target locale (e.g., "en", "de")'),
 });

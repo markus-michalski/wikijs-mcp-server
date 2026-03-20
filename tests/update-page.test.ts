@@ -196,6 +196,122 @@ describe('handleUpdatePage', () => {
     });
   });
 
+  describe('Auto-fetch title and description on partial updates', () => {
+    it('should auto-fetch title when only content is updated', async () => {
+      const result = await handleUpdatePage(mockClient, {
+        id: 42,
+        content: '# New Content',
+      });
+
+      expect(result.isError).toBeFalsy();
+
+      // title should be fetched from existing page, not sent as null
+      expect(mockClient.updatePage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 42,
+          content: '# New Content',
+          title: 'Test Page',
+        })
+      );
+    });
+
+    it('should auto-fetch description when only content is updated', async () => {
+      // Ensure mock returns description
+      mockClient = createMockClient({
+        getPageById: vi.fn().mockResolvedValue({
+          id: 42,
+          path: 'test/page',
+          title: 'Test Page',
+          description: 'Existing description',
+          content: '# Existing Content',
+          locale: 'en',
+          isPublished: false,
+          tags: ['existing-tag'],
+        }),
+      });
+
+      const result = await handleUpdatePage(mockClient, {
+        id: 42,
+        content: '# New Content',
+      });
+
+      expect(result.isError).toBeFalsy();
+
+      // description should be fetched from existing page, not sent as null
+      expect(mockClient.updatePage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 42,
+          content: '# New Content',
+          description: 'Existing description',
+        })
+      );
+    });
+
+    it('should NOT override title when explicitly provided', async () => {
+      const result = await handleUpdatePage(mockClient, {
+        id: 42,
+        title: 'Custom Title',
+        content: '# New Content',
+      });
+
+      expect(result.isError).toBeFalsy();
+
+      expect(mockClient.updatePage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Custom Title',
+        })
+      );
+    });
+
+    it('should NOT override description when explicitly provided', async () => {
+      const result = await handleUpdatePage(mockClient, {
+        id: 42,
+        description: 'Custom desc',
+        content: '# New Content',
+      });
+
+      expect(result.isError).toBeFalsy();
+
+      expect(mockClient.updatePage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: 'Custom desc',
+        })
+      );
+    });
+
+    it('should auto-fetch both title and description via path resolution', async () => {
+      mockClient = createMockClient({
+        getPageByPath: vi.fn().mockResolvedValue({
+          id: 42,
+          path: 'test/page',
+          title: 'Path Page Title',
+          description: 'Path page description',
+          content: '# Path Content',
+          locale: 'en',
+          isPublished: true,
+          tags: ['tag1'],
+        }),
+      });
+
+      const result = await handleUpdatePage(mockClient, {
+        path: 'test/page',
+        locale: 'en',
+        isPublished: false,
+      });
+
+      expect(result.isError).toBeFalsy();
+
+      expect(mockClient.updatePage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 42,
+          title: 'Path Page Title',
+          description: 'Path page description',
+          content: '# Path Content',
+        })
+      );
+    });
+  });
+
   describe('Error handling', () => {
     it('should return error when page not found by ID', async () => {
       mockClient = createMockClient({

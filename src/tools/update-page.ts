@@ -73,19 +73,23 @@ export async function handleUpdatePage(
       throw new Error('Could not resolve page ID');
     }
 
-    // If content not provided, fetch current content to preserve it
-    // Wiki.js API requires content in update mutation, even for metadata-only updates
-    let contentToUse = validated.content;
-    if (contentToUse === undefined) {
-      // Reuse already fetched page or fetch by ID
+    // Auto-fetch current page data for fields not provided
+    // Wiki.js API requires string values for title/description and content
+    const needsCurrentPage =
+      validated.content === undefined ||
+      validated.title === undefined ||
+      validated.description === undefined;
+
+    if (needsCurrentPage && !currentPage) {
+      currentPage = await client.getPageById(pageId);
       if (!currentPage) {
-        currentPage = await client.getPageById(pageId);
-        if (!currentPage) {
-          throw new Error(`Page not found with ID: ${pageId}`);
-        }
+        throw new Error(`Page not found with ID: ${pageId}`);
       }
-      contentToUse = currentPage.content;
     }
+
+    const contentToUse = validated.content ?? currentPage?.content;
+    const titleToUse = validated.title ?? currentPage?.title ?? null;
+    const descriptionToUse = validated.description ?? currentPage?.description ?? null;
 
     // If tags not provided, fetch current tags to preserve them
     // (Wiki.js API requires tags parameter in update mutation)
@@ -99,8 +103,8 @@ export async function handleUpdatePage(
     const result = await client.updatePage({
       id: pageId,
       content: contentToUse ?? null,
-      title: validated.title ?? null,
-      description: validated.description ?? null,
+      title: titleToUse,
+      description: descriptionToUse,
       isPublished: validated.isPublished ?? null,
       tags: tagsToUse,
     });

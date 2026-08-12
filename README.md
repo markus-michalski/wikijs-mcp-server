@@ -2,6 +2,8 @@
 
 **Model Context Protocol Server for Wiki.js integration in Claude Code** - Create and manage wiki pages directly from your AI assistant.
 
+> **For Claude Code, use [wikijs-plugin](https://github.com/markus-michalski/wikijs-plugin) instead.** It combines this server (ported to Python) with a `docs-wiki` skill into a single installable plugin via the Claude Code marketplace mechanism — no more manual clone/build/config steps. This repo remains available as a standalone `@markus-michalski/wikijs-mcp-server` npm package for non-Claude-Code MCP clients, but is no longer the recommended way to use Wiki.js from Claude Code.
+
 ## v2.0.0 - Major Refactoring
 
 This version includes a complete rewrite following MCP Best Practices:
